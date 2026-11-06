@@ -1,0 +1,35 @@
+name: ci
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+env:
+  PROMETHEUS_VERSION: "3.16.0"
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: "3.12"
+      - run: pip install -r requirements-test.txt
+      - run: ruff check .
+      - run: ruff format --check .
+      - run: python -m unittest discover -s tests
+
+      - name: install promtool
+        run: |
+          curl -sSLO "https://github.com/prometheus/prometheus/releases/download/v${PROMETHEUS_VERSION}/prometheus-${PROMETHEUS_VERSION}.linux-amd64.tar.gz"
+          echo "68727009472a2c02e1ff7f062fd5b3e637285bffc8fc2d340c76fb449d6e0f34  prometheus-${PROMETHEUS_VERSION}.linux-amd64.tar.gz" | sha256sum -c -
+          tar -xzf "prometheus-${PROMETHEUS_VERSION}.linux-amd64.tar.gz"
+          sudo mv "prometheus-${PROMETHEUS_VERSION}.linux-amd64/promtool" /usr/local/bin/promtool
+
+      - name: promtool check rules
+        run: promtool check rules rules/slo-burn.rules.yml
+
+      - name: promtool test rules
+        run: promtool test rules tests/slo_burn.test.yml
