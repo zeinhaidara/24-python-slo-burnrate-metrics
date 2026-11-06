@@ -1,0 +1,7 @@
+# Example SLO config. target/latency_threshold_seconds here must match the threshold baked
+# into app.py's histogram buckets and rules/slo-burn.rules.yml's le="0.5" selector.
+target: 0.99
+latency_threshold_seconds: 0.5
+windows:
+  - 1h
+  - 6h
