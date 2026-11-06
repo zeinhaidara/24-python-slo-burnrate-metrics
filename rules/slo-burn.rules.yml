@@ -1,0 +1,33 @@
+groups:
+  - name: orders-sli-recording
+    rules:
+      - record: orders:sli_good_ratio:rate1h
+        expr: |
+          sum(rate(orders_processing_seconds_bucket{le="0.5"}[1h]))
+          /
+          sum(rate(orders_processing_seconds_count[1h]))
+      - record: orders:sli_good_ratio:rate6h
+        expr: |
+          sum(rate(orders_processing_seconds_bucket{le="0.5"}[6h]))
+          /
+          sum(rate(orders_processing_seconds_count[6h]))
+
+  - name: orders-slo-burn-rate
+    rules:
+      - alert: OrdersSLOBurnRateHigh
+        # Multi-window, multi-burn-rate check (Google SRE workbook pattern): both the 1h and
+        # 6h windows must show the error budget burning faster than sustainable before paging -
+        # a brief 1h blip alone isn't enough to page on, and a 6h window alone reacts too
+        # slowly. 14.4 and 6 are the standard page-tier burn-rate multipliers for a 1h/6h pair
+        # against a 2% (30-day) budget consumption. 0.01 is 1 - target from
+        # config/slo.example.yaml's target: 0.99 - keep these in sync if that target changes.
+        expr: |
+          ((1 - orders:sli_good_ratio:rate1h) / 0.01) > 14.4
+          and
+          ((1 - orders:sli_good_ratio:rate6h) / 0.01) > 6
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Orders SLO error budget is burning too fast"
+          description: "Error budget burn rate exceeds 14.4x over 1h and 6x over 6h - at this rate the 30-day budget would be exhausted well before the window ends."
