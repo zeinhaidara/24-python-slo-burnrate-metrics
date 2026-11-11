@@ -1,4 +1,4 @@
-# slo-burn-rate-metrics
+# SLO burn-rate metrics service
 
 A Python service that simulates processing orders, exposes two Prometheus business metrics
 (a latency histogram and an outcome counter) on `/metrics`, and ships a multi-window SLO
@@ -96,7 +96,7 @@ changes, since Prometheus rules can't read an external YAML file at evaluation t
 anything. Re-running `app.py` starts fresh metrics (no persisted state across restarts), which
 is the expected behavior for a Prometheus client library.
 
-## Tests
+## Validation
 
 ```bash
 pip install -r requirements-test.txt
@@ -124,7 +124,7 @@ above, `promtool check rules`/`test rules` against a synthetic fixture, and `ruf
 recording rules' output has never been checked against anything a live Prometheus actually
 scraped and evaluated.
 
-## Known limits
+## Known limitations
 
 - One alert, one label pair (`success`/`failure`), one latency threshold - matching the
   problem statement exactly, no extra severities or metrics.
