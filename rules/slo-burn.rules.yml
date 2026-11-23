@@ -1,5 +1,5 @@
 groups:
-  - name: orders-sli-recording
+  - name: orders-slo-burn-rate
     rules:
       - record: orders:sli_good_ratio:rate1h
         expr: |
@@ -11,9 +11,8 @@ groups:
           sum(rate(orders_processing_seconds_bucket{le="0.5"}[6h]))
           /
           sum(rate(orders_processing_seconds_count[6h]))
-
-  - name: orders-slo-burn-rate
-    rules:
+      # Same group as the recording rules: rules in one group run in order, so the alert
+      # always reads this evaluation's ratios. Separate groups run concurrently.
       - alert: OrdersSLOBurnRateHigh
         # Multi-window, multi-burn-rate check (Google SRE workbook pattern): both the 1h and
         # 6h windows must show the error budget burning faster than sustainable before paging -

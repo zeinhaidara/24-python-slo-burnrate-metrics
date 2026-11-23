@@ -4,6 +4,10 @@ A Python service that simulates processing orders, exposes two Prometheus busine
 (a latency histogram and an outcome counter) on `/metrics`, and ships a multi-window SLO
 burn-rate alert following the Google SRE workbook pattern.
 
+Why it matters: alerting on raw error rates either pages for every short blip or reacts too
+late to a slow leak. A burn-rate alert over two windows pages only when the error budget is
+being used up fast enough to matter.
+
 **Scope.** `app.py` is a fake order simulator - not a real shop, not real traffic. No
 Grafana dashboard, no Alertmanager config, and no endpoint beyond `/metrics`. Never run against
 real traffic or a real Prometheus server - see Status below.
